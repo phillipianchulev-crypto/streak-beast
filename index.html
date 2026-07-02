@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Streak Beast</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14121f">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Streak Beast">
+<style>
+  :root{
+    --bg:#14121f;
+    --card:#1f1c2e;
+    --card2:#262238;
+    --text:#f3f1ff;
+    --muted:#a8a3c4;
+    --strength:#ff8a65;
+    --stamina:#4fd1c5;
+    --recovery:#7c9eff;
+    --chaos:#d17dff;
+    --good:#3ddc84;
+    --warn:#ffd76a;
+    --danger:#ff6b6b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex;
+    justify-content:center;
+  }
+  .app{
+    width:100%;
+    max-width:460px;
+    padding:16px 16px 48px;
+  }
+  .hidden{ display:none !important; }
+  h1{ font-size:22px; margin:4px 0 2px; }
+  h2{ font-size:15px; margin:0 0 10px; color:var(--text); }
+  p.sub{ color:var(--muted); font-size:13px; margin:0 0 18px; }
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 4px; }
+  input[type=number], select{
+    width:100%;
+    padding:11px 10px;
+    border-radius:10px;
+    border:1px solid #3a3552;
+    background:var(--card2);
+    color:var(--text);
+    font-size:16px;
+  }
+  .row{ display:flex; gap:10px; }
+  .row > *{ flex:1; }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border:none;
+    border-radius:10px;
+    color:var(--text);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-primary{
+    width:100%;
+    background:var(--stamina);
+    color:#0b1f1d;
+    font-weight:700;
+    font-size:15px;
+    padding:14px;
+    margin-top:16px;
+  }
+  .btn-secondary{
+    background:var(--card2);
+    color:var(--text);
+    font-size:13px;
+    padding:10px 12px;
+  }
+  .btn-link{
+    background:transparent;
+    color:var(--muted);
+    font-size:12px;
+    text-decoration:underline;
+    padding:6px 0;
+  }
+  .disclaimer{
+    font-size:11px;
+    color:var(--muted);
+    background:var(--card2);
+    padding:10px 12px;
+    border-radius:10px;
+    margin-top:14px;
+    line-height:1.5;
+  }
+  /* header */
+  .header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  /* beast */
+  .beast-wrap{ text-align:center; }
+  canvas#beastCanvas{
+    width:100%;
+    max-width:260px;
+    height:auto;
+    image-rendering:pixelated;
+    background:var(--card2);
+    border-radius:14px;
+    padding:10px;
+  }
+  .beast-label{ font-size:18px; font-weight:700; margin-top:10px; }
+  .beast-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  /* stat bars */
+  .stat-row{ margin-bottom:10px; }
+  .stat-top{ display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
+  .bar{ background:var(--card2); border-radius:8px; height:10px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:8px; transition:width .3s ease; }
+  /* check-in */
+  .stepper-row{ display:flex; align-items:center; gap:10px; margin:8px 0; }
+  .stepper-row .value{ flex:1; text-align:center; font-size:16px; font-weight:700; }
+  .step-btn{
+    width:44px; height:44px;
+    font-size:20px;
+    background:var(--card2);
+  }
+  .quick-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .quick-row button{ padding:8px 12px; font-size:13px; background:var(--card2); }
+  .quick-row button.active{ background:var(--stamina); color:#0b1f1d; font-weight:700; }
+  .macro-summary{ font-size:13px; color:var(--muted); margin-bottom:6px; }
+  .preset-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
+  .preset-grid button{ padding:10px 6px; font-size:12px; text-align:left; background:var(--card2); line-height:1.3; }
+  .toggle-row{ display:flex; gap:10px; margin-top:10px; }
+  .toggle-btn{
+    flex:1;
+    padding:12px;
+    font-size:14px;
+    background:var(--card2);
+    font-weight:600;
+  }
+  .toggle-btn.on{ background:var(--good); color:#08240f; }
+  .small-note{ font-size:11px; color:var(--muted); margin-top:6px; }
+  .custom-add{ display:flex; gap:6px; margin-top:10px; }
+  .custom-add input{ padding:9px; font-size:14px; }
+  details{ margin-top:6px; }
+  summary{ font-size:12px; color:var(--muted); cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SETUP SCREEN ============ -->
+  <div id="setup-screen">
+    <h1>🐾 Streak Beast</h1>
+    <p class="sub">Let's set up your daily targets first. This takes a minute.</p>
+
+    <div class="card" id="setup-inputs-card">
+      <h2>About you</h2>
+      <div class="row">
+        <div>
+          <label for="in-weight">Weight (lb)</label>
+          <input type="number" id="in-weight" min="50" max="600" placeholder="170">
+        </div>
+        <div>
+          <label for="in-age">Age</label>
+          <input type="number" id="in-age" min="10" max="100" placeholder="30">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="in-feet">Height (ft)</label>
+          <input type="number" id="in-feet" min="3" max="8" placeholder="5">
+        </div>
+        <div>
+          <label for="in-inches">Height (in)</label>
+          <input type="number" id="in-inches" min="0" max="11" placeholder="10">
+        </div>
+      </div>
+      <label for="in-sex">Sex (used only for the calorie formula)</label>
+      <select id="in-sex">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <label for="in-activity">Activity level</label>
+      <select id="in-activity">
+        <option value="sedentary">Sedentary (little/no exercise)</option>
+        <option value="light">Light (1-3 days/week)</option>
+        <option value="moderate" selected>Moderate (3-5 days/week)</option>
+        <option value="active">Active (6-7 days/week)</option>
+        <option value="very_active">Very active (hard daily training)</option>
+      </select>
+      <button class="btn-primary" onclick="calculateTargets()">Calculate my targets</button>
+    </div>
+
+    <div class="card hidden" id="setup-targets-card">
+      <h2>Your daily targets</h2>
+      <p class="sub" style="margin-bottom:10px;">Estimates based on the Mifflin-St Jeor formula. Edit anything below if you know better.</p>
+      <label for="t-calories">Calories</label>
+      <input type="number" id="t-calories">
+      <label for="t-protein">Protein (g)</label>
+      <input type="number" id="t-protein">
+      <div class="row">
+        <div>
+          <label for="t-fat">Fat (g)</label>
+          <input type="number" id="t-fat">
+        </div>
+        <div>
+          <label for="t-carbs">Carbs (g)</label>
+          <input type="number" id="t-carbs">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="t-water">Water (L)</label>
+          <input type="number" id="t-water" step="0.1">
+        </div>
+        <div>
+          <label for="t-sleep">Sleep (hrs)</label>
+          <input type="number" id="t-sleep" step="0.5">
+        </div>
+      </div>
+      <div class="disclaimer">These numbers are general estimates, not medical advice. Adjust them to fit you, or check with a doctor/dietitian.</div>
+      <button class="btn-primary" onclick="saveProfileAndStart()">Save & start</button>
+    </div>
+  </div>
+
+  <!-- ============ MAIN APP SCREEN ============ -->
+  <div id="app-screen" class="hidden">
+    <div class="header">
+      <h1 style="margin:0;">🐾 Streak Beast</h1>
+      <button class="btn-link" onclick="toggleEditTargets()">Edit targets</button>
+    </div>
+
+    <div class="card hidden" id="edit-targets-card">
+      <h2>Edit your targets</h2>
+      <label for="e-calories">Calories</label>
+      <input type="number" id="e-calories">
+      <label for="e-protein">Protein (g)</label>
+      <input type="number" id="e-protein">
+      <div class="row">
+        <div>
+          <label for="e-fat">Fat (g)</label>
+          <input type="number" id="e-fat">
+        </div>
+        <div>
+          <label for="e-carbs">Carbs (g)</label>
+          <input type="number" id="e-carbs">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="e-water">Water (L)</label>
+          <input type="number" id="e-water" step="0.1">
+        </div>
+        <div>
+          <label for="e-sleep">Sleep (hrs)</label>
+          <input type="number" id="e-sleep" step="0.5">
+        </div>
+      </div>
+      <div class="disclaimer">Estimates, not medical advice — edit freely to match your own plan.</div>
+      <button class="btn-primary" onclick="saveEditedTargets()">Save changes</button>
+      <button class="btn-secondary" style="width:100%;margin-top:8px;" onclick="recalcFromProfile()">Recalculate from my stats</button>
+    </div>
+
+    <div class="card beast-wrap">
+      <canvas id="beastCanvas" width="224" height="196"></canvas>
+      <div class="beast-label" id="beast-label">—</div>
+      <div class="beast-sub" id="beast-sub">—</div>
+    </div>
+
+    <div class="card">
+      <h2>This week's stats</h2>
+      <div class="stat-row">
+        <div class="stat-top"><span>Strength</span><span id="stat-strength-val">0</span></div>
+        <div class="bar"><div class="bar-fill" id="stat-strength-bar" style="background:var(--strength);width:0%;"></div></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-top"><span>Stamina</span><span id="stat-stamina-val">0</span></div>
+        <div class="bar"><div class="bar-fill" id="stat-stamina-bar" style="background:var(--stamina);width:0%;"></div></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-top"><span>Recovery</span><span id="stat-recovery-val">0</span></div>
+        <div class="bar"><div class="bar-fill" id="stat-recovery-bar" style="background:var(--recovery);width:0%;"></div></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-top"><span>Chaos Energy</span><span id="stat-chaos-val">0</span></div>
+        <div class="bar"><div class="bar-fill" id="stat-chaos-bar" style="background:var(--chaos);width:0%;"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Today's check-in</h2>
+
+      <label>Sleep</label>
+      <div class="stepper-row">
+        <button class="step-btn" onclick="adjustSleep(-0.5)">−</button>
+        <div class="value" id="sleep-value">0 hrs</div>
+        <button class="step-btn" onclick="adjustSleep(0.5)">+</button>
+      </div>
+      <div class="quick-row" id="sleep-quick"></div>
+
+      <label style="margin-top:16px;">Water (target <span id="water-target-label">4</span> L)</label>
+      <div class="stepper-row">
+        <button class="step-btn" onclick="adjustWater(-0.25)">−</button>
+        <div class="value" id="water-value">0.0 L</div>
+        <button class="step-btn" onclick="adjustWater(0.25)">+</button>
+      </div>
+      <div class="quick-row">
+        <button onclick="adjustWater(0.25)">+1 cup (250ml)</button>
+        <button onclick="adjustWater(0.5)">+500ml</button>
+      </div>
+
+      <label style="margin-top:16px;">Nutrition</label>
+      <div class="macro-summary" id="macro-summary">—</div>
+      <div class="preset-grid" id="preset-grid"></div>
+      <div class="custom-add">
+        <input type="number" id="c-cal" placeholder="cal">
+        <input type="number" id="c-protein" placeholder="protein g">
+        <input type="number" id="c-carbs" placeholder="carbs g">
+        <input type="number" id="c-fat" placeholder="fat g">
+        <button class="btn-secondary" onclick="addCustomMacro()">Add</button>
+      </div>
+      <button class="btn-link" onclick="resetNutrition()">Reset today's nutrition</button>
+
+      <label style="margin-top:16px;">Creatine &amp; workout</label>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="creatine-btn" onclick="toggleCreatine()">Creatine: No</button>
+        <button class="toggle-btn" id="workout-btn" onclick="toggleWorkout()">Workout: No</button>
+      </div>
+      <div class="small-note" id="workout-ratio-note">—</div>
+    </div>
+
+    <details>
+      <summary>Advanced</summary>
+      <div class="card" style="margin-top:8px;">
+        <button class="btn-secondary" style="width:100%;" onclick="resetAllData()">Reset all Streak Beast data</button>
+      </div>
+    </details>
+
+    <div class="disclaimer">Nutrition targets are general estimates, not medical advice. Edit them anytime under "Edit targets".</div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- storage keys ---------- */
+const PROFILE_KEY = 'streakbeast_profile';
+const LOGS_KEY = 'streakbeast_logs';
+const EMA_KEY = 'streakbeast_strength_ema';
+
+/* ---------- small helpers ---------- */
+function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
+function round1(n){ return Math.round(n * 10) / 10; }
+function pad(n){ return String(n).padStart(2, '0'); }
+function dateKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function todayKey(){ return dateKey(new Date()); }
+function withinPct(value, target, pct){
+  if(!target) return true;
+  return Math.abs(value - target) / target * 100 <= pct;
+}
+
+/* ---------- profile / targets ---------- */
+function loadProfile(){
+  const raw = localStorage.getItem(PROFILE_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+function saveProfile(p){ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+
+const ACTIVITY_MULT = { sedentary:1.2, light:1.375, moderate:1.55, active:1.725, very_active:1.9 };
+
+function mifflinBMR({ weightLb, heightIn, age, sex }){
+  const kg = weightLb * 0.453592;
+  const cm = heightIn * 2.54;
+  const base = 10*kg + 6.25*cm - 5*age;
+  return sex === 'male' ? base + 5 : base - 161;
+}
+
+function computeTargets(inputs){
+  const bmr = mifflinBMR(inputs);
+  const calories = Math.round(bmr * ACTIVITY_MULT[inputs.activity]);
+  const protein = Math.round(inputs.weightLb * 0.85); // ~0.7-1 g/lb
+  const fatCalories = calories * 0.30;
+  const fat = Math.round(fatCalories / 9);
+  const carbCalories = Math.max(calories - protein*4 - fatCalories, 0);
+  const carbs = Math.round(carbCalories / 4);
+  return { calories, protein, fat, carbs, water: 4, sleep: 8 };
+}
+
+let pendingInputs = null;
+
+function calculateTargets(){
+  const weightLb = parseFloat(document.getElementById('in-weight').value);
+  const feet = parseFloat(document.getElementById('in-feet').value) || 0;
+  const inches = parseFloat(document.getElementById('in-inches').value) || 0;
+  const age = parseFloat(document.getElementById('in-age').value);
+  const sex = document.getElementById('in-sex').value;
+  const activity = document.getElementById('in-activity').value;
+
+  if(!weightLb || !age || (feet === 0 && inches === 0)){
+    alert('Please fill in weight, height, and age.');
+    return;
+  }
+  const heightIn = feet*12 + inches;
+  pendingInputs = { weightLb, heightIn, age, sex, activity };
+  const targets = computeTargets(pendingInputs);
+
+  document.getElementById('t-calories').value = targets.calories;
+  document.getElementById('t-protein').value = targets.protein;
+  document.getElementById('t-fat').value = targets.fat;
+  document.getElementById('t-carbs').value = targets.carbs;
+  document.getElementById('t-water').value = targets.water;
+  document.getElementById('t-sleep').value = targets.sleep;
+
+  document.getElementById('setup-targets-card').classList.remove('hidden');
+  document.getElementById('setup-targets-card').scrollIntoView({ behavior:'smooth' });
+}
+
+function saveProfileAndStart(){
+  const targets = {
+    calories: parseFloat(document.getElementById('t-calories').value),
+    protein: parseFloat(document.getElementById('t-protein').value),
+    fat: parseFloat(document.getElementById('t-fat').value),
+    carbs: parseFloat(document.getElementById('t-carbs').value),
+    water: parseFloat(document.getElementById('t-water').value),
+    sleep: parseFloat(document.getElementById('t-sleep').value),
+  };
+  const profile = {
+    ...pendingInputs,
+    targets,
+    createdDate: todayKey(),
+  };
+  saveProfile(profile);
+  showApp();
+}
+
+function toggleEditTargets(){
+  const card = document.getElementById('edit-targets-card');
+  const profile = loadProfile();
+  if(card.classList.contains('hidden')){
+    document.getElementById('e-calories').value = profile.targets.calories;
+    document.getElementById('e-protein').value = profile.targets.protein;
+    document.getElementById('e-fat').value = profile.targets.fat;
+    document.getElementById('e-carbs').value = profile.targets.carbs;
+    document.getElementById('e-water').value = profile.targets.water;
+    document.getElementById('e-sleep').value = profile.targets.sleep;
+    card.classList.remove('hidden');
+  } else {
+    card.classList.add('hidden');
+  }
+}
+
+function saveEditedTargets(){
+  const profile = loadProfile();
+  profile.targets = {
+    calories: parseFloat(document.getElementById('e-calories').value),
+    protein: parseFloat(document.getElementById('e-protein').value),
+    fat: parseFloat(document.getElementById('e-fat').value),
+    carbs: parseFloat(document.getElementById('e-carbs').value),
+    water: parseFloat(document.getElementById('e-water').value),
+    sleep: parseFloat(document.getElementById('e-sleep').value),
+  };
+  saveProfile(profile);
+  document.getElementById('edit-targets-card').classList.add('hidden');
+  render();
+}
+
+function recalcFromProfile(){
+  const profile = loadProfile();
+  profile.targets = computeTargets(profile);
+  saveProfile(profile);
+  toggleEditTargets();
+  toggleEditTargets();
+  render();
+}
+
+/* ---------- logs ---------- */
+function loadLogs(){
+  const raw = localStorage.getItem(LOGS_KEY);
+  return raw ? JSON.parse(raw) : {};
+}
+function saveLogs(logs){ localStorage.setItem(LOGS_KEY, JSON.stringify(logs)); }
+
+function getTodayLog(){
+  const logs = loadLogs();
+  const key = todayKey();
+  if(!logs[key]){
+    logs[key] = { sleep:0, water:0, calories:0, protein:0, carbs:0, fat:0, creatine:false, workout:false };
+    saveLogs(logs);
+  }
+  return logs[key];
+}
+function updateTodayLog(mutator){
+  const logs = loadLogs();
+  const key = todayKey();
+  if(!logs[key]){
+    logs[key] = { sleep:0, water:0, calories:0, protein:0, carbs:0, fat:0, creatine:false, workout:false };
+  }
+  mutator(logs[key]);
+  saveLogs(logs);
+  render();
+}
+
+/* dates counted toward rolling stats: today back to profile creation, max 7 days */
+function relevantDates(profile){
+  const dates = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    const key = dateKey(d);
+    if(key >= profile.createdDate) dates.push(key);
+  }
+  return dates;
+}
+
+/* ---------- macro presets ---------- */
+const PRESETS = [
+  { name:'Chicken breast (150g)', cal:248, protein:46, carbs:0, fat:5 },
+  { name:'Rice, 1 cup cooked', cal:205, protein:4, carbs:45, fat:0.4 },
+  { name:'Protein shake', cal:120, protein:24, carbs:3, fat:1 },
+  { name:'Egg (1 large)', cal:78, protein:6, carbs:0.6, fat:5 },
+  { name:'Peanut butter, 1 tbsp', cal:94, protein:4, carbs:3, fat:8 },
+  { name:'Banana', cal:105, protein:1.3, carbs:27, fat:0.4 },
+  { name:'Greek yogurt, 1 cup', cal:150, protein:20, carbs:9, fat:4 },
+  { name:'Oats, 1/2 cup dry', cal:150, protein:5, carbs:27, fat:3 },
+];
+
+function buildPresetGrid(){
+  const grid = document.getElementById('preset-grid');
+  grid.innerHTML = '';
+  PRESETS.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = `+ ${p.name}`;
+    btn.onclick = () => addPreset(i);
+    grid.appendChild(btn);
+  });
+}
+function addPreset(i){
+  const p = PRESETS[i];
+  updateTodayLog(log => {
+    log.calories = round1(log.calories + p.cal);
+    log.protein = round1(log.protein + p.protein);
+    log.carbs = round1(log.carbs + p.carbs);
+    log.fat = round1(log.fat + p.fat);
+  });
+}
+function addCustomMacro(){
+  const cal = parseFloat(document.getElementById('c-cal').value) || 0;
+  const protein = parseFloat(document.getElementById('c-protein').value) || 0;
+  const carbs = parseFloat(document.getElementById('c-carbs').value) || 0;
+  const fat = parseFloat(document.getElementById('c-fat').value) || 0;
+  updateTodayLog(log => {
+    log.calories = round1(log.calories + cal);
+    log.protein = round1(log.protein + protein);
+    log.carbs = round1(log.carbs + carbs);
+    log.fat = round1(log.fat + fat);
+  });
+  ['c-cal','c-protein','c-carbs','c-fat'].forEach(id => document.getElementById(id).value = '');
+}
+function resetNutrition(){
+  updateTodayLog(log => { log.calories = 0; log.protein = 0; log.carbs = 0; log.fat = 0; });
+}
+
+/* ---------- sleep / water / toggles ---------- */
+const SLEEP_QUICK = [6, 7, 8, 9];
+function buildSleepQuick(){
+  const row = document.getElementById('sleep-quick');
+  row.innerHTML = '';
+  SLEEP_QUICK.forEach(v => {
+    const btn = document.createElement('button');
+    btn.textContent = `${v} hrs`;
+    btn.onclick = () => updateTodayLog(log => { log.sleep = v; });
+    row.appendChild(btn);
+  });
+}
+function adjustSleep(delta){
+  updateTodayLog(log => { log.sleep = clamp(round1(log.sleep + delta), 0, 14); });
+}
+function adjustWater(delta){
+  updateTodayLog(log => { log.water = clamp(round1(log.water + delta), 0, 10); });
+}
+function toggleCreatine(){
+  updateTodayLog(log => { log.creatine = !log.creatine; });
+}
+function toggleWorkout(){
+  updateTodayLog(log => { log.workout = !log.workout; });
+}
+
+/* ---------- scoring ---------- */
+function computeStrength(profile, logs){
+  const dates = relevantDates(profile);
+  let workoutDays = 0, creatineDays = 0;
+  dates.forEach(k => { const l = logs[k]; if(l && l.workout) workoutDays++; if(l && l.creatine) creatineDays++; });
+  const n = dates.length;
+  const workoutRatio = workoutDays / n;
+  const creatineRatio = creatineDays / n;
+  const workoutScore = Math.min(1, workoutRatio / 0.75);
+  let raw = workoutScore*70 + creatineRatio*30;
+  if(workoutRatio < 0.75) raw -= (0.75 - workoutRatio) * 40;
+  raw = clamp(raw, 0, 100);
+
+  const prevRaw = localStorage.getItem(EMA_KEY);
+  const smoothed = prevRaw === null ? raw : (parseFloat(prevRaw) * 0.8 + raw * 0.2);
+  const value = clamp(smoothed, 0, 100);
+  localStorage.setItem(EMA_KEY, String(value));
+  return { value, workoutRatio, workoutDays, n };
+}
+
+function computeStamina(profile, logs){
+  const dates = relevantDates(profile);
+  const targets = profile.targets;
+  let total = 0;
+  dates.forEach(k => {
+    const l = logs[k];
+    if(!l){ total += 0; return; }
+    let score = 0;
+    const calOk = l.calories > 0 && withinPct(l.calories, targets.calories, 10);
+    const calBad = l.calories === 0 || !withinPct(l.calories, targets.calories, 20);
+    const proteinOk = l.protein > 0 && withinPct(l.protein, targets.protein, 10);
+    const proteinBad = l.protein === 0 || !withinPct(l.protein, targets.protein, 20);
+    score += calOk ? 30 : (calBad ? 0 : 15);
+    score += proteinOk ? 30 : (proteinBad ? 0 : 15);
+    score += l.water >= targets.water ? 40 : Math.min(40, (l.water / targets.water) * 40);
+    total += score;
+  });
+  return clamp(total / dates.length, 0, 100);
+}
+
+function computeRecovery(profile, logs){
+  const dates = relevantDates(profile);
+  const targets = profile.targets;
+  let total = 0;
+  dates.forEach(k => {
+    const l = logs[k];
+    if(!l){ total += 0; return; }
+    let score = 0;
+    if(l.sleep >= 8) score += 50;
+    else if(l.sleep >= 6) score += (l.sleep - 6) / 2 * 50;
+    score += l.water >= targets.water ? 30 : (l.water / targets.water) * 30;
+    if(l.sleep < 6){
+      score -= 10;
+      if(l.workout) score -= 20;
+    }
+    total += clamp(score, 0, 100);
+  });
+  return clamp(total / dates.length, 0, 100);
+}
+
+function computeChaos(profile, logs){
+  const dates = relevantDates(profile);
+  const targets = profile.targets;
+  let total = 0;
+  dates.forEach(k => {
+    const l = logs[k];
+    if(!l){ total += 70; return; }
+    let score = 0;
+    if(l.sleep < 6) score += 25;
+    if(l.water < targets.water * 0.75) score += 20;
+    if(l.workout && !l.creatine) score += 20;
+    const calBad = l.calories === 0 || !withinPct(l.calories, targets.calories, 20);
+    const proteinBad = l.protein === 0 || !withinPct(l.protein, targets.protein, 20);
+    if(calBad) score += 17.5;
+    if(proteinBad) score += 17.5;
+    total += clamp(score, 0, 100);
+  });
+  return clamp(total / dates.length, 0, 100);
+}
+
+/* ---------- beast pixel art ---------- */
+const BLOCK = 14, COLS = 16, ROWS = 14;
+const BODY_ROWS = [
+  [[3,4],[11,12]],
+  [[3,5],[10,12]],
+  [[4,11]],
+  [[3,12]],
+  [[3,12]],
+  [[3,12]],
+  [[3,12]],
+  [[3,12]],
+  [[3,12]],
+  [[3,12]],
+  [[4,11]],
+  [[4,11]],
+  [[4,5],[10,11]],
+  [[4,5],[10,11]],
+];
+
+const STATES = {
+  balanced_neutral: {
+    label: 'Steady', subtitle: "Doing alright — nothing wild going on.",
+    bodyColor: '#4fd1c5', arms:false,
+    eyes:[{col:6,row:5,w:1,h:1,color:'#0d2b28'},{col:9,row:5,w:1,h:1,color:'#0d2b28'}],
+    mouth:[{col:6,row:8,w:4,h:1,color:'#0d2b28'}],
+    extras:[]
+  },
+  calm_buff: {
+    label: 'Calm & Buff', subtitle: 'Consistent training, well rested. Locked in.',
+    bodyColor:'#3ddc84', arms:true,
+    eyes:[{col:6,row:5,w:1,h:1,color:'#0a3319'},{col:9,row:5,w:1,h:1,color:'#0a3319'}],
+    mouth:[{col:6,row:8,w:4,h:1,color:'#0a3319'},{col:5,row:9,w:1,h:1,color:'#0a3319'},{col:10,row:9,w:1,h:1,color:'#0a3319'}],
+    extras:[]
+  },
+  thriving_zen: {
+    label: 'Thriving', subtitle: "Everything's clicking. Peak Beast.",
+    bodyColor:'#ffd76a', arms:true,
+    eyes:[{col:6,row:5,w:1,h:1,color:'#5a3d05'},{col:9,row:5,w:1,h:1,color:'#5a3d05'}],
+    mouth:[{col:6,row:8,w:4,h:1,color:'#5a3d05'},{col:5,row:9,w:1,h:1,color:'#5a3d05'},{col:10,row:9,w:1,h:1,color:'#5a3d05'}],
+    extras:[
+      {type:'spark',col:1,row:2,color:'#fff59d'},
+      {type:'spark',col:14,row:3,color:'#fff59d'},
+      {type:'spark',col:2,row:11,color:'#fff59d'},
+      {type:'spark',col:13,row:10,color:'#fff59d'},
+    ]
+  },
+  jacked_deranged: {
+    label: 'Jacked & Deranged', subtitle: 'Big gains, questionable choices. High Chaos.',
+    bodyColor:'#ff6b6b', arms:true,
+    eyes:[
+      {col:5,row:4,w:2,h:2,color:'#fff'},{col:9,row:4,w:2,h:2,color:'#fff'},
+      {col:6,row:5,w:1,h:1,color:'#1a0e0e'},{col:10,row:5,w:1,h:1,color:'#1a0e0e'}
+    ],
+    mouth:[
+      {col:5,row:8,w:1,h:1,color:'#1a0e0e'},{col:6,row:9,w:1,h:1,color:'#1a0e0e'},
+      {col:7,row:8,w:1,h:1,color:'#1a0e0e'},{col:8,row:9,w:1,h:1,color:'#1a0e0e'},
+      {col:9,row:8,w:1,h:1,color:'#1a0e0e'},{col:10,row:9,w:1,h:1,color:'#1a0e0e'}
+    ],
+    extras:[
+      {type:'spark',col:1,row:6,color:'#ffe066'},{type:'spark',col:14,row:7,color:'#ffe066'},
+      {type:'spark',col:2,row:1,color:'#ffe066'},{type:'spark',col:13,row:12,color:'#ffe066'}
+    ]
+  },
+  feral_chaotic: {
+    label: 'Feral Chaos', subtitle: 'Vibes are unhinged. Check sleep and water.',
+    bodyColor:'#e06bff', arms:false,
+    eyes:[
+      {col:5,row:4,w:2,h:2,color:'#fff'},{col:9,row:4,w:2,h:2,color:'#fff'},
+      {col:6,row:5,w:1,h:1,color:'#1a0e2e'},{col:10,row:5,w:1,h:1,color:'#1a0e2e'}
+    ],
+    mouth:[
+      {col:5,row:8,w:1,h:1,color:'#1a0e2e'},{col:6,row:9,w:1,h:1,color:'#1a0e2e'},
+      {col:7,row:8,w:1,h:1,color:'#1a0e2e'},{col:8,row:9,w:1,h:1,color:'#1a0e2e'},
+      {col:9,row:8,w:1,h:1,color:'#1a0e2e'},{col:10,row:9,w:1,h:1,color:'#1a0e2e'}
+    ],
+    extras:[
+      {type:'spark',col:1,row:3,color:'#fffd82'},{type:'spark',col:14,row:2,color:'#fffd82'},
+      {type:'spark',col:2,row:12,color:'#fffd82'},{type:'spark',col:13,row:11,color:'#fffd82'},
+      {type:'spark',col:0,row:8,color:'#fffd82'}
+    ]
+  },
+  droopy_sleepy: {
+    label: 'Droopy', subtitle: 'Running on empty. Needs sleep or water, stat.',
+    bodyColor:'#8a86c9', arms:false,
+    eyes:[{col:5,row:6,w:2,h:1,color:'#2b2850'},{col:9,row:6,w:2,h:1,color:'#2b2850'}],
+    mouth:[{col:6,row:9,w:4,h:1,color:'#2b2850'}],
+    extras:[{type:'zzz'}]
+  },
+};
+
+function pickBeastState(stats){
+  const { strength, stamina, recovery, chaos } = stats;
+  if(stamina < 35 || recovery < 35) return 'droopy_sleepy';
+  if(chaos >= 65 && strength >= 60) return 'jacked_deranged';
+  if(chaos >= 65) return 'feral_chaotic';
+  if(strength >= 65 && recovery >= 65 && chaos < 35) return stamina >= 65 ? 'thriving_zen' : 'calm_buff';
+  return 'balanced_neutral';
+}
+
+function drawBeast(stateKey){
+  const canvas = document.getElementById('beastCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const cfg = STATES[stateKey];
+
+  ctx.fillStyle = cfg.bodyColor;
+  BODY_ROWS.forEach((segments, row) => {
+    segments.forEach(([startCol, endCol]) => {
+      ctx.fillRect(startCol*BLOCK, row*BLOCK, (endCol-startCol+1)*BLOCK, BLOCK);
+    });
+  });
+  if(cfg.arms){
+    ctx.fillRect(1*BLOCK, 6*BLOCK, 2*BLOCK, 2*BLOCK);
+    ctx.fillRect(13*BLOCK, 6*BLOCK, 2*BLOCK, 2*BLOCK);
+  }
+  cfg.eyes.forEach(e => { ctx.fillStyle = e.color; ctx.fillRect(e.col*BLOCK, e.row*BLOCK, e.w*BLOCK, e.h*BLOCK); });
+  cfg.mouth.forEach(m => { ctx.fillStyle = m.color; ctx.fillRect(m.col*BLOCK, m.row*BLOCK, m.w*BLOCK, m.h*BLOCK); });
+  cfg.extras.forEach(ex => {
+    if(ex.type === 'spark'){
+      ctx.fillStyle = ex.color;
+      ctx.fillRect(ex.col*BLOCK, ex.row*BLOCK, BLOCK*0.6, BLOCK*0.6);
+    }
+    if(ex.type === 'zzz'){
+      ctx.fillStyle = '#cfcaff';
+      ctx.font = `${Math.round(BLOCK*0.9)}px monospace`;
+      ctx.fillText('z', 12*BLOCK, 3.5*BLOCK);
+      ctx.font = `${Math.round(BLOCK*0.6)}px monospace`;
+      ctx.fillText('z', 13.3*BLOCK, 2.2*BLOCK);
+    }
+  });
+}
+
+/* ---------- render ---------- */
+function render(){
+  const profile = loadProfile();
+  if(!profile) return;
+  const logs = loadLogs();
+  const log = getTodayLog();
+  const targets = profile.targets;
+
+  // check-in display
+  document.getElementById('sleep-value').textContent = `${log.sleep} hrs`;
+  document.getElementById('water-value').textContent = `${round1(log.water)} L`;
+  document.getElementById('water-target-label').textContent = targets.water;
+  document.getElementById('macro-summary').textContent =
+    `${Math.round(log.calories)}/${targets.calories} cal · ${Math.round(log.protein)}/${targets.protein}g protein · ${Math.round(log.carbs)}/${targets.carbs}g carbs · ${Math.round(log.fat)}/${targets.fat}g fat`;
+
+  const cBtn = document.getElementById('creatine-btn');
+  cBtn.textContent = `Creatine: ${log.creatine ? 'Yes' : 'No'}`;
+  cBtn.classList.toggle('on', log.creatine);
+  const wBtn = document.getElementById('workout-btn');
+  wBtn.textContent = `Workout: ${log.workout ? 'Yes' : 'No'}`;
+  wBtn.classList.toggle('on', log.workout);
+
+  // stats
+  const strengthResult = computeStrength(profile, logs);
+  const stamina = computeStamina(profile, logs);
+  const recovery = computeRecovery(profile, logs);
+  const chaos = computeChaos(profile, logs);
+  const strength = strengthResult.value;
+
+  document.getElementById('stat-strength-val').textContent = Math.round(strength);
+  document.getElementById('stat-strength-bar').style.width = strength + '%';
+  document.getElementById('stat-stamina-val').textContent = Math.round(stamina);
+  document.getElementById('stat-stamina-bar').style.width = stamina + '%';
+  document.getElementById('stat-recovery-val').textContent = Math.round(recovery);
+  document.getElementById('stat-recovery-bar').style.width = recovery + '%';
+  document.getElementById('stat-chaos-val').textContent = Math.round(chaos);
+  document.getElementById('stat-chaos-bar').style.width = chaos + '%';
+
+  document.getElementById('workout-ratio-note').textContent =
+    `${strengthResult.workoutDays}/${strengthResult.n} workout days this week (goal ~3 of every 4)`;
+
+  const stateKey = pickBeastState({ strength, stamina, recovery, chaos });
+  drawBeast(stateKey);
+  document.getElementById('beast-label').textContent = STATES[stateKey].label;
+  document.getElementById('beast-sub').textContent = STATES[stateKey].subtitle;
+}
+
+/* ---------- data reset ---------- */
+function resetAllData(){
+  if(!confirm('This will erase your profile, targets, and all logged days. Continue?')) return;
+  localStorage.removeItem(PROFILE_KEY);
+  localStorage.removeItem(LOGS_KEY);
+  localStorage.removeItem(EMA_KEY);
+  location.reload();
+}
+
+/* ---------- boot ---------- */
+function showApp(){
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.remove('hidden');
+  buildSleepQuick();
+  buildPresetGrid();
+  render();
+}
+
+(function boot(){
+  const profile = loadProfile();
+  if(profile) showApp();
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+}
+</script>
+</body>
+</html>
