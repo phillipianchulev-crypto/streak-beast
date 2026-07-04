@@ -91,6 +91,14 @@
     text-decoration:underline;
     padding:6px 0;
   }
+  .btn-pill{
+    background:var(--card2);
+    color:var(--text);
+    font-size:12px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:999px;
+  }
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -108,18 +116,19 @@
     margin-bottom:10px;
   }
   /* beast */
-  .beast-wrap{ text-align:center; }
+  .beast-wrap{ text-align:center; padding-top:4px; }
   canvas#beastCanvas{
     width:100%;
-    max-width:260px;
+    max-width:220px;
     height:auto;
     image-rendering:pixelated;
     background:var(--card2);
-    border-radius:14px;
-    padding:10px;
+    border-radius:16px;
+    padding:14px;
+    transition:background .4s ease;
   }
-  .beast-label{ font-size:18px; font-weight:700; margin-top:10px; }
-  .beast-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .beast-label{ font-size:19px; font-weight:800; margin-top:14px; letter-spacing:.2px; }
+  .beast-sub{ font-size:12px; color:var(--muted); margin-top:3px; }
   /* stat bars */
   .stat-row{ margin-bottom:10px; }
   .stat-top{ display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
@@ -149,8 +158,10 @@
   }
   .toggle-btn.on{ background:var(--good); color:#08240f; }
   .small-note{ font-size:11px; color:var(--muted); margin-top:6px; }
-  .custom-add{ display:flex; gap:6px; margin-top:10px; }
-  .custom-add input{ padding:9px; font-size:14px; }
+  .custom-add{ margin-top:10px; }
+  .custom-add-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .custom-add input{ padding:10px; font-size:14px; }
+  .custom-add .btn-secondary{ width:100%; margin-top:8px; }
   details{ margin-top:6px; }
   summary{ font-size:12px; color:var(--muted); cursor:pointer; }
 </style>
@@ -237,7 +248,7 @@
   <div id="app-screen" class="hidden">
     <div class="header">
       <h1 style="margin:0;">🐾 Streak Beast</h1>
-      <button class="btn-link" onclick="toggleEditTargets()">Edit targets</button>
+      <button class="btn-pill" onclick="toggleEditTargets()">Edit targets</button>
     </div>
 
     <div class="card hidden" id="edit-targets-card">
@@ -323,11 +334,13 @@
       <div class="macro-summary" id="macro-summary">—</div>
       <div class="preset-grid" id="preset-grid"></div>
       <div class="custom-add">
-        <input type="number" id="c-cal" placeholder="cal">
-        <input type="number" id="c-protein" placeholder="protein g">
-        <input type="number" id="c-carbs" placeholder="carbs g">
-        <input type="number" id="c-fat" placeholder="fat g">
-        <button class="btn-secondary" onclick="addCustomMacro()">Add</button>
+        <div class="custom-add-grid">
+          <input type="number" id="c-cal" placeholder="cal">
+          <input type="number" id="c-protein" placeholder="protein g">
+          <input type="number" id="c-carbs" placeholder="carbs g">
+          <input type="number" id="c-fat" placeholder="fat g">
+        </div>
+        <button class="btn-secondary" onclick="addCustomMacro()">Add custom amount</button>
       </div>
       <button class="btn-link" onclick="resetNutrition()">Reset today's nutrition</button>
 
@@ -696,21 +709,21 @@ const BODY_ROWS = [
 const STATES = {
   balanced_neutral: {
     label: 'Steady', subtitle: "Doing alright — nothing wild going on.",
-    bodyColor: '#4fd1c5', arms:false,
+    bodyColor: '#4fd1c5', glow:'rgba(79,209,197,0.25)', arms:false,
     eyes:[{col:6,row:5,w:1,h:1,color:'#0d2b28'},{col:9,row:5,w:1,h:1,color:'#0d2b28'}],
     mouth:[{col:6,row:8,w:4,h:1,color:'#0d2b28'}],
     extras:[]
   },
   calm_buff: {
     label: 'Calm & Buff', subtitle: 'Consistent training, well rested. Locked in.',
-    bodyColor:'#3ddc84', arms:true,
+    bodyColor:'#3ddc84', glow:'rgba(61,220,132,0.28)', arms:true,
     eyes:[{col:6,row:5,w:1,h:1,color:'#0a3319'},{col:9,row:5,w:1,h:1,color:'#0a3319'}],
     mouth:[{col:6,row:8,w:4,h:1,color:'#0a3319'},{col:5,row:9,w:1,h:1,color:'#0a3319'},{col:10,row:9,w:1,h:1,color:'#0a3319'}],
     extras:[]
   },
   thriving_zen: {
     label: 'Thriving', subtitle: "Everything's clicking. Peak Beast.",
-    bodyColor:'#ffd76a', arms:true,
+    bodyColor:'#ffd76a', glow:'rgba(255,215,106,0.3)', arms:true,
     eyes:[{col:6,row:5,w:1,h:1,color:'#5a3d05'},{col:9,row:5,w:1,h:1,color:'#5a3d05'}],
     mouth:[{col:6,row:8,w:4,h:1,color:'#5a3d05'},{col:5,row:9,w:1,h:1,color:'#5a3d05'},{col:10,row:9,w:1,h:1,color:'#5a3d05'}],
     extras:[
@@ -722,7 +735,7 @@ const STATES = {
   },
   jacked_deranged: {
     label: 'Jacked & Deranged', subtitle: 'Big gains, questionable choices. High Chaos.',
-    bodyColor:'#ff6b6b', arms:true,
+    bodyColor:'#ff6b6b', glow:'rgba(255,107,107,0.3)', arms:true,
     eyes:[
       {col:5,row:4,w:2,h:2,color:'#fff'},{col:9,row:4,w:2,h:2,color:'#fff'},
       {col:6,row:5,w:1,h:1,color:'#1a0e0e'},{col:10,row:5,w:1,h:1,color:'#1a0e0e'}
@@ -739,7 +752,7 @@ const STATES = {
   },
   feral_chaotic: {
     label: 'Feral Chaos', subtitle: 'Vibes are unhinged. Check sleep and water.',
-    bodyColor:'#e06bff', arms:false,
+    bodyColor:'#e06bff', glow:'rgba(224,107,255,0.3)', arms:false,
     eyes:[
       {col:5,row:4,w:2,h:2,color:'#fff'},{col:9,row:4,w:2,h:2,color:'#fff'},
       {col:6,row:5,w:1,h:1,color:'#1a0e2e'},{col:10,row:5,w:1,h:1,color:'#1a0e2e'}
@@ -757,7 +770,7 @@ const STATES = {
   },
   droopy_sleepy: {
     label: 'Droopy', subtitle: 'Running on empty. Needs sleep or water, stat.',
-    bodyColor:'#8a86c9', arms:false,
+    bodyColor:'#8a86c9', glow:'rgba(138,134,201,0.22)', arms:false,
     eyes:[{col:5,row:6,w:2,h:1,color:'#2b2850'},{col:9,row:6,w:2,h:1,color:'#2b2850'}],
     mouth:[{col:6,row:9,w:4,h:1,color:'#2b2850'}],
     extras:[{type:'zzz'}]
@@ -779,6 +792,7 @@ function drawBeast(stateKey){
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const cfg = STATES[stateKey];
+  canvas.style.background = `radial-gradient(circle at 50% 42%, ${cfg.glow} 0%, var(--card2) 68%)`;
 
   ctx.fillStyle = cfg.bodyColor;
   BODY_ROWS.forEach((segments, row) => {
